@@ -1,0 +1,410 @@
+<div align="center">
+<h1><kbd>🧩 ChatFlow</kbd></h1>
+An extension for MIT App Inventor 2.<br>
+Chat View Extension with styling, editing, exporting, full Markdown support, and message IDs.
+</div>
+
+## 📝 Specifications
+* **
+📦 **Package:** com.bosonshiggs.chatflow
+💾 **Size:** 525,14 KB
+📱 **Minimum API Level:** 14
+📅 **Updated On:** [date=2026-02-09 timezone="America/Fortaleza"]
+💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v5.5.0</mark></small>
+
+## <kbd>Events:</kbd>
+**ChatFlow** has total 14 events.
+
+### 1. TextCopiedToClipboard
+Triggered when text is copied to clipboard from a message.
+
+| Parameter | Type
+| - | - |
+| messageId | text
+| text | text
+
+### 2. MarkdownStatusChanged
+Triggered when Markdown support is enabled or disabled.
+
+| Parameter | Type
+| - | - |
+| enabled | boolean
+
+### 3. ReactionIconClicked
+Triggered when a reaction icon is clicked.
+
+| Parameter | Type
+| - | - |
+| iconId | text
+| message | text
+| reactionIndex | number
+
+### 4. DownloadCompleted
+Triggered when the image download is completed.
+
+| Parameter | Type
+| - | - |
+| imageId | text
+
+### 5. DownloadProgress
+Triggered to show download progress from 0 to 100.
+
+| Parameter | Type
+| - | - |
+| imageId | text
+| progress | number
+
+### 6. FullScreenImageClosed
+Triggered when the fullscreen image is closed by clicking outside.
+
+### 7. FullScreenImageClicked
+Triggered when the fullscreen image is clicked.
+
+| Parameter | Type
+| - | - |
+| imagePath | text
+
+### 8. TextInputSubmitted
+Event triggered when the user submits the entered text.
+
+| Parameter | Type
+| - | - |
+| text | text
+| tag | text
+
+### 9. FloatingMenuClicked
+Triggered when a floating menu item is selected.
+
+| Parameter | Type
+| - | - |
+| item | text
+| tag | text
+
+### 10. ImageClicked
+Triggered when an attached image is clicked.
+
+| Parameter | Type
+| - | - |
+| imagePath | text
+
+### 11. ErrorOccurred
+Triggered when an error or log message occurs.
+
+| Parameter | Type
+| - | - |
+| message | text
+
+### 12. MessageClicked
+Triggered when a message is clicked.
+
+| Parameter | Type
+| - | - |
+| id | text
+| message | text
+| timestamp | text
+| attachedImagePath | text
+| x | number
+| y | number
+
+### 13. MessageLongClicked
+Triggered when a message is long-clicked (pressed and held).
+
+| Parameter | Type
+| - | - |
+| id | text
+| message | text
+| timestamp | text
+| attachedImagePath | text
+| x | number
+| y | number
+
+### 14. MessageAdded
+Triggered when a message is added.
+
+| Parameter | Type
+| - | - |
+| id | text
+| message | text
+| timestamp | text
+| attachedImagePath | text
+
+## <kbd>Methods:</kbd>
+**ChatFlow** has total 32 methods.
+
+### 1. Initialize
+Initializes the Chat View within a container, such as a HorizontalArrangement or VerticalArrangement.
+
+| Parameter | Type
+| - | - |
+| container | component
+
+### 2. EnableLogging
+Enables or disables logging mode.
+
+| Parameter | Type
+| - | - |
+| enable | boolean
+
+### 3. GenerateMessageId
+Generates and returns a unique ID for messages. Returns a UUID string.
+
+* Return type: `text`
+
+### 4. AddMessage
+Adds a message to the Chat View with styling options.
+
+| Parameter | Type
+| - | - |
+| message | text
+| isUser | boolean
+| imageProfile | text <small><mark>(asset blocks)</mark></small>
+| messageImage | text <small><mark>(asset blocks)</mark></small>
+| timestamp | text
+| timestampFontColor | number
+| timestampFontSize | number
+| fontColor | number
+| backgroundColor | number
+| fontSize | number
+| bold | boolean
+| italic | boolean
+| cornerRadius | number
+| marginsMessageImage | list
+| reactions | list
+| isHtml | boolean
+| allowExternalScripts | boolean
+
+### 5. AddMessageWithId
+Adds a message to the Chat View with styling options and a custom ID. If ID is empty, generates a new one.
+
+| Parameter | Type
+| - | - |
+| messageId | text
+| message | text
+| isUser | boolean
+| imageProfile | text <small><mark>(asset blocks)</mark></small>
+| messageImage | text <small><mark>(asset blocks)</mark></small>
+| timestamp | text
+| timestampFontColor | number
+| timestampFontSize | number
+| fontColor | number
+| backgroundColor | number
+| fontSize | number
+| bold | boolean
+| italic | boolean
+| cornerRadius | number
+| marginsMessageImage | list
+| reactions | list
+| isHtml | boolean
+| allowExternalScripts | boolean
+
+### 6. SetEnableCopyOnLongClick
+Enables or disables automatic text copying on long click.
+
+| Parameter | Type
+| - | - |
+| enable | boolean
+
+### 7. CopyMessageToClipboard
+Copies a specific message text to clipboard by its ID.
+
+| Parameter | Type
+| - | - |
+| messageId | text
+
+### 8. CopyLastClickedMessage
+Copies the last clicked message text to clipboard.
+
+### 9. ShowCopyMenuForMessage
+Shows a popup menu with copy options for a specific message.
+
+| Parameter | Type
+| - | - |
+| messageId | text
+| x | number
+| y | number
+
+### 10. SetMarkdownEnabled
+Enables or disables Markdown support for all messages. When enabled, text will be parsed as Markdown.
+
+| Parameter | Type
+| - | - |
+| enabled | boolean
+
+### 11. IsMarkdownEnabled
+Returns true if Markdown support is currently enabled.
+
+* Return type: `boolean`
+
+### 12. MarkdownToHtml
+Converts Markdown text to HTML. Useful for preview or other purposes.
+
+* Return type: `text`
+
+| Parameter | Type
+| - | - |
+| markdownText | text
+
+### 13. AddMarkdownMessage
+Processes and adds a Markdown message directly.
+
+| Parameter | Type
+| - | - |
+| messageId | text
+| markdownText | text
+| isUser | boolean
+| imageProfile | text <small><mark>(asset blocks)</mark></small>
+| messageImage | text <small><mark>(asset blocks)</mark></small>
+| timestamp | text
+| timestampFontColor | number
+| timestampFontSize | number
+| fontColor | number
+| backgroundColor | number
+| fontSize | number
+| bold | boolean
+| italic | boolean
+| cornerRadius | number
+| marginsMessageImage | list
+| reactions | list
+
+### 14. AddReactionToMessage
+Adds a reaction icon to a specific message by its ID and updates the view.
+
+| Parameter | Type
+| - | - |
+| messageId | text
+| emoji | text
+
+### 15. DeleteMessage
+Deletes a message by its ID and updates the Chat View.
+
+| Parameter | Type
+| - | - |
+| id | text
+
+### 16. ShowFloatingMenu
+Displays a floating menu at X and Y coordinates with a list of options and a tag. Optionally includes Markdown toggle.
+
+| Parameter | Type
+| - | - |
+| x | number
+| y | number
+| items | list
+| tag | text
+| includeMarkdownToggle | boolean
+
+### 17. ExportChatToJson
+Exports the entire conversation in JSON format.
+
+* Return type: `text`
+
+### 18. EditMessage
+Edits a message by ID.
+
+| Parameter | Type
+| - | - |
+| id | text
+| newMessage | text
+
+### 19. CopyToClipboard
+Copies text to the clipboard.
+
+| Parameter | Type
+| - | - |
+| text | text
+
+### 20. HexColorToInt
+Converts a hexadecimal color string with alpha value to an int color for App Inventor.
+
+* Return type: `number`
+
+| Parameter | Type
+| - | - |
+| hexColor | text
+| alpha | number
+
+### 21. HasImage
+Checks if a message contains an attached image.
+
+* Return type: `boolean`
+
+| Parameter | Type
+| - | - |
+| messageId | text
+
+### 22. GetImagePath
+Gets the image path for a message if it exists.
+
+* Return type: `text`
+
+| Parameter | Type
+| - | - |
+| messageId | text
+
+### 23. ShowFullScreenImage
+Displays an image in full screen with zoom control and a close button.
+
+| Parameter | Type
+| - | - |
+| imagePathOrUrl | text <small><mark>(asset blocks)</mark></small>
+
+### 24. IsImageMaximized
+Returns true if an image is currently maximized, false otherwise.
+
+* Return type: `boolean`
+
+### 25. RequestStoragePermission
+Requests storage permissions required to download an image.
+
+### 26. DownloadImageToGallery
+Downloads an image to a specified gallery directory and updates with progress events.
+
+| Parameter | Type
+| - | - |
+| imageUrl | text <small><mark>(asset blocks)</mark></small>
+| directoryName | text
+
+### 27. CheckImageClicked
+Returns the path of an attached image if clicked, otherwise returns an empty string.
+
+* Return type: `text`
+
+| Parameter | Type
+| - | - |
+| messageId | text
+
+### 28. SetMessageMarginPadding
+Sets message margin and padding.
+
+| Parameter | Type
+| - | - |
+| left | number
+| top | number
+| right | number
+| bottom | number
+
+### 29. ClearAllMessages
+Clears all messages from the chat view.
+
+### 30. GetMessageCount
+Gets the total count of messages in the chat.
+
+* Return type: `number`
+
+### 31. MessageExists
+Checks if a message with the given ID exists.
+
+* Return type: `boolean`
+
+| Parameter | Type
+| - | - |
+| messageId | text
+
+### 32. GetMessageText
+Gets the message text by ID.
+
+* Return type: `text`
+
+| Parameter | Type
+| - | - |
+| messageId | text
+
