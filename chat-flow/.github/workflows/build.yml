@@ -1,0 +1,58 @@
+name: fast build
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_jdk:
+        description: 'JDK Version'
+        required: true
+        default: '11'
+        type: choice
+        options:
+          - '8'
+          - '11'
+          - '17'
+          - '24'
+      build_args:
+        description: 'Arguments (optional)'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK ${{ github.event.inputs.build_jdk }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: '${{ github.event.inputs.build_jdk }}'
+        distribution: 'temurin'
+
+    - name: Set up FAST-CLI
+      run: |
+        wget -q https://github.com/jewelshkjony/fast-cli/releases/download/v5.5.0/fast.zip
+        unzip -q fast.zip -d fast-cli-temp
+        rm fast.zip
+
+    - name: Building project
+      run: java -jar fast-cli-temp/fast.jar sync build -dir . ${{ github.event.inputs.build_args }}
+
+    - name: Cleanup FAST-CLI
+      run: rm -rf fast-cli-temp
+
+    - name: Commit build results
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add .
+        git commit -m "Auto-commit build changes [fast-cli]"
+        git push

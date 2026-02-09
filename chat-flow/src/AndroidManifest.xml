@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.bosonshiggs.chatflow">
+
+    <!-- INTERNET para carregar imagens por URL -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Permissões para salvar imagens (Android 9 ou inferior) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"/>
+
+    <!-- Permissão para ler imagens (Android 13+) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <application
+        android:requestLegacyExternalStorage="true">
+
+        <!-- (Opcional) Caso futuramente use Service, Receiver, etc -->
+        <!--
+        <service android:name="com.bosonshiggs.chatflow.MyService" />
+        -->
+
+    </application>
+
+</manifest>

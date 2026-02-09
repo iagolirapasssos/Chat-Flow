@@ -1,0 +1,55 @@
+# The name of the extension developer
+author: Francisco Iago Lira Passos
+
+# If enabled, the version number of every component will be increased automatically.
+auto_version: false
+
+# The minimum Android SDK level your extension supports. Minimum SDK defined in
+# AndroidManifest.xml or @DesignerComponent are ignored, you should always define it here.
+min_sdk: 7
+
+# If enabled, Kotlin Standard Libraries (V1.9.24) will be included with the extension.
+# If you want to add specific Kotlin Standard Libraries so disable it.
+kotlin: false
+
+# If enabled, you will be able to use Java 8 language features in your extension source code.
+# When you use .kt classes, by default Fast will desugar sources.
+desugar_sources: false
+
+# Enable it, if any of your dependencies use Java 8 language features.
+# If kotlin is enabled, by default Fast will desugar dependencies.
+desugar_deps: false
+
+# If enabled, the D8 tool will generate desugared (classes.jar) classes.dex
+desugar_dex: true
+
+# If enabled, @annotations will be not present in built extension.
+deannonate: true
+
+# If enabled, matching classes provided by MIT will not be included in the built extension.
+filter_mit_classes: false
+
+# If enabled, it will optimizes the extension with ProGuard.
+proguard: true
+
+# If enabled, R8 will be used instead of ProGuard and D8 dexer.
+# NOTE: It's an experimental feature.
+R8: false
+
+# Extension dependencies (JAR) [Should be present into deps directory]
+dependencies:
+- core-4.6.2.aar
+- commonmark-0.27.1.jar
+
+# Extension assets. [Should be present into assets directory]
+assets:
+- icon.png
+
+# Enable to write docs in Markdown during build. Pass `-b` to generate blocks.
+gen_docs: true
+# Enable to increment the version number of each component during build.
+auto_version: false
+# Enable to remove @annotations from the extension.
+deannonate: true
+# Enable to skip matching classes provided by AI2.
+filter_mit_classes: false
