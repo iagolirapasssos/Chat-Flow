@@ -6,7 +6,7 @@ auto_version: false
 
 # The minimum Android SDK level your extension supports. Minimum SDK defined in
 # AndroidManifest.xml or @DesignerComponent are ignored, you should always define it here.
-min_sdk: 7
+min_sdk: 14
 
 # If enabled, Kotlin Standard Libraries (V1.9.24) will be included with the extension.
 # If you want to add specific Kotlin Standard Libraries so disable it.
@@ -38,8 +38,8 @@ R8: false
 
 # Extension dependencies (JAR) [Should be present into deps directory]
 dependencies:
-- core-4.6.2.aar
-- commonmark-0.27.1.jar
+ - core-4.6.2.aar
+ - commonmark-0.17.0.jar
 
 # Extension assets. [Should be present into assets directory]
 assets:
@@ -47,9 +47,3 @@ assets:
 
 # Enable to write docs in Markdown during build. Pass `-b` to generate blocks.
 gen_docs: true
-# Enable to increment the version number of each component during build.
-auto_version: false
-# Enable to remove @annotations from the extension.
-deannonate: true
-# Enable to skip matching classes provided by AI2.
-filter_mit_classes: false

@@ -7,9 +7,9 @@ Chat View Extension with styling, editing, exporting, full Markdown support, and
 ## 📝 Specifications
 * **
 📦 **Package:** com.bosonshiggs.chatflow
-💾 **Size:** 525,14 KB
+💾 **Size:** 472,02 KB
 📱 **Minimum API Level:** 14
-📅 **Updated On:** [date=2026-02-09 timezone="America/Fortaleza"]
+📅 **Updated On:** [date=2026-03-28 timezone="America/Fortaleza"]
 💻 **Built & documented using:** [FAST](https://community.appinventor.mit.edu/t/fast-an-efficient-way-to-build-publish-extensions/129103?u=jewel) <small><mark>v5.5.0</mark></small>
 
 ## <kbd>Events:</kbd>

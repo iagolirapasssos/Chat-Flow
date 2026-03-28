@@ -28,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Button;
 import android.net.Uri;
 import android.os.Environment;
+import android.widget.Toast;
 import com.google.appinventor.components.annotations.*;
 import com.google.appinventor.components.annotations.Asset;
 import com.google.appinventor.components.common.ComponentCategory;
@@ -52,7 +53,7 @@ import com.google.appinventor.components.runtime.util.YailList;
 import io.noties.markwon.Markwon;
 
 @DesignerComponent(
-        version = 44, // Incrementei a versão
+        version = 45, // Incrementei a versão
         description = "Chat View Extension with styling, editing, exporting, full Markdown support, and message IDs.",
         nonVisible = true,
         iconName = "icon.png"
@@ -69,7 +70,11 @@ public class ChatFlow extends AndroidNonvisibleComponent {
     
     // Variáveis para controle do Markwon
     private boolean markdownEnabled = false;
-    private Markwon markwon; // [citation:1][citation:7]
+    private Markwon markwon;
+    
+    // Variáveis para controle de copiar texto
+    private boolean enableCopyOnLongClick = true;
+    private String lastCopiedMessageId = "";
 
     public ChatFlow(ComponentContainer container) {
         super(container.$form());
@@ -80,13 +85,11 @@ public class ChatFlow extends AndroidNonvisibleComponent {
         chatLayout.setOrientation(LinearLayout.VERTICAL);
         scrollView.addView(chatLayout);
         
-        // Inicializa o Markwon assim que o contexto estiver disponível[citation:1][citation:7]
+        // Inicializa o Markwon assim que o contexto estiver disponível
         initializeMarkwon();
     }
 
     private void initializeMarkwon() {
-        // Cria uma instância básica do Markwon[citation:1][citation:6][citation:7]
-        // Você pode adicionar plugins aqui (tabelas, código, etc.) se necessário
         markwon = Markwon.create(context);
     }
 
@@ -166,11 +169,16 @@ public class ChatFlow extends AndroidNonvisibleComponent {
 
                     TextView messageView = new TextView(context);
                     
+                    // Configura o TextView para permitir seleção de texto
+                    messageView.setTextIsSelectable(true);
+                    messageView.setFocusable(true);
+                    messageView.setFocusableInTouchMode(true);
+                    
                     // =============================
                     // PROCESSAMENTO DE TEXTO PRINCIPAL
                     // =============================
                     if (markdownEnabled && !isHtml) {
-                        // Usa o Markwon para processar e aplicar Markdown diretamente[citation:1][citation:7]
+                        // Usa o Markwon para processar e aplicar Markdown diretamente
                         markwon.setMarkdown(messageView, message);
                     } else if (isHtml) {
                         // Modo HTML (mantido para compatibilidade)
@@ -190,11 +198,10 @@ public class ChatFlow extends AndroidNonvisibleComponent {
                     }
                     
                     // Aplica formatação base (negrito, itálico) apenas se especificado e NÃO for Markdown/HTML
-                    // O Markwon já cuida da formatação quando ativado
                     if (!isHtml && !markdownEnabled && (bold || italic)) {
                         messageView.setTypeface(null, (bold ? 1 : 0) | (italic ? 2 : 0));
                     } else {
-                        messageView.setTypeface(null, 0); // Reset para fonte normal
+                        messageView.setTypeface(null, 0);
                     }
                     
                     messageView.setTextSize(fontSize);
@@ -206,6 +213,9 @@ public class ChatFlow extends AndroidNonvisibleComponent {
                     bubbleBackground.setStroke(2, Color.LTGRAY);
                     messageView.setBackground(bubbleBackground);
                     messageView.setPadding(20, 15, 20, 15);
+
+                    // Adiciona listener para o TextView que permite copiar texto
+                    setupTextViewForCopy(messageView, id, message);
 
                     bubbleLayout.addView(messageView);
 
@@ -257,11 +267,14 @@ public class ChatFlow extends AndroidNonvisibleComponent {
                         messageLayout.addView(bubbleLayout);
                     }
 
+                    // Configura o clique na mensagem
+                    setupMessageClickListeners(messageLayout, id, message, timestamp, attachedImagePath);
+
                     if (!attachedImagePath.isEmpty()) {
                         ImageView messageImageView = createImageView(attachedImagePath, 400, 400);
                         if (messageImageView != null) {
                             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(400, 400);
-
+                            
                             if (marginsMessageImage != null && marginsMessageImage.size() == 4) {
                                 int left = Integer.parseInt(marginsMessageImage.getString(0));
                                 int top = Integer.parseInt(marginsMessageImage.getString(1));
@@ -272,28 +285,30 @@ public class ChatFlow extends AndroidNonvisibleComponent {
                                 imageParams.setMargins(15, 2, 0, 0);
                             }
                             messageImageView.setLayoutParams(imageParams);
-                            chatLayout.addView(messageLayout);
-                            chatLayout.addView(messageImageView);
-
+                            
+                            // Crie um container para mensagem + imagem
+                            LinearLayout messageContainer = new LinearLayout(context);
+                            messageContainer.setOrientation(LinearLayout.VERTICAL);
+                            messageContainer.addView(messageLayout);
+                            messageContainer.addView(messageImageView);
+                            
+                            // Adicione o container ao chat
+                            chatLayout.addView(messageContainer);
+                            
                             messageImageView.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     ImageClicked(attachedImagePath);
                                 }
                             });
+                            
+                            // Configura clique no container
+                            setupMessageClickListeners(messageContainer, id, message, timestamp, attachedImagePath);
                         }
                     } else {
+                        // Para mensagens sem imagem
                         chatLayout.addView(messageLayout);
                     }
-
-                    messageLayout.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            int[] location = new int[2];
-                            v.getLocationOnScreen(location);
-                            MessageClicked(id, message, timestamp, attachedImagePath, location[0], location[1]);
-                        }
-                    });
 
                     scrollToBottom();
 
@@ -315,6 +330,181 @@ public class ChatFlow extends AndroidNonvisibleComponent {
                 }
             }
         });
+    }
+
+    // Método para configurar os listeners de clique na mensagem
+    private void setupMessageClickListeners(View view, final String id, final String message, 
+                                          final String timestamp, final String attachedImagePath) {
+        // Remove listeners antigos para evitar duplicação
+        view.setOnClickListener(null);
+        view.setOnLongClickListener(null);
+        
+        // Configura clique simples
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int[] location = new int[2];
+                v.getLocationOnScreen(location);
+                MessageClicked(id, message, timestamp, attachedImagePath, location[0], location[1]);
+            }
+        });
+        
+        // Configura clique longo
+        view.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                int[] location = new int[2];
+                v.getLocationOnScreen(location);
+                
+                // Se copiar automático estiver habilitado, copia o texto
+                if (enableCopyOnLongClick) {
+                    copyMessageTextToClipboard(id, message);
+                }
+                
+                MessageLongClicked(id, message, timestamp, attachedImagePath, location[0], location[1]);
+                return true;
+            }
+        });
+    }
+    
+    // Método para configurar o TextView para permitir cópia
+    private void setupTextViewForCopy(TextView textView, final String id, final String message) {
+        // Adiciona listener para cópia quando o texto é selecionado
+        textView.setCustomSelectionActionModeCallback(new android.view.ActionMode.Callback2() {
+            @Override
+            public boolean onCreateActionMode(android.view.ActionMode mode, android.view.Menu menu) {
+                // Adiciona item de menu personalizado para copiar
+                android.view.MenuItem copyItem = menu.add(android.view.Menu.NONE, android.view.Menu.NONE, 0, "Copiar");
+                copyItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS);
+                
+                // Adiciona item para copiar mensagem completa
+                android.view.MenuItem copyFullItem = menu.add(android.view.Menu.NONE, android.view.Menu.NONE, 1, "Copiar mensagem completa");
+                copyFullItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM);
+                
+                return true;
+            }
+            
+            @Override
+            public boolean onPrepareActionMode(android.view.ActionMode mode, android.view.Menu menu) {
+                return true;
+            }
+            
+            @Override
+            public boolean onActionItemClicked(android.view.ActionMode mode, android.view.MenuItem item) {
+                CharSequence title = item.getTitle();
+                if (title.equals("Copiar")) {
+                    // Copia o texto selecionado
+                    int start = textView.getSelectionStart();
+                    int end = textView.getSelectionEnd();
+                    String selectedText = textView.getText().toString().substring(start, end);
+                    copyToClipboardInternal(selectedText);
+                    mode.finish();
+                    return true;
+                } else if (title.equals("Copiar mensagem completa")) {
+                    // Copia a mensagem completa
+                    copyMessageTextToClipboard(id, message);
+                    mode.finish();
+                    return true;
+                }
+                return false;
+            }
+            
+            @Override
+            public void onDestroyActionMode(android.view.ActionMode mode) {
+                // Nada a fazer aqui
+            }
+        });
+    }
+
+    @SimpleFunction(description = "Enables or disables automatic text copying on long click.")
+    public void SetEnableCopyOnLongClick(boolean enable) {
+        enableCopyOnLongClick = enable;
+        logMessage("Copy on long click " + (enable ? "enabled" : "disabled"));
+    }
+
+    @SimpleFunction(description = "Copies a specific message text to clipboard by its ID.")
+    public void CopyMessageToClipboard(String messageId) {
+        MessageData messageData = messagesMap.get(messageId);
+        if (messageData != null) {
+            copyMessageTextToClipboard(messageId, messageData.message);
+        } else {
+            logError("Message ID not found: " + messageId);
+        }
+    }
+
+    @SimpleFunction(description = "Copies the last clicked message text to clipboard.")
+    public void CopyLastClickedMessage() {
+        if (!lastCopiedMessageId.isEmpty()) {
+            CopyMessageToClipboard(lastCopiedMessageId);
+        } else {
+            logError("No message has been clicked yet.");
+        }
+    }
+
+    @SimpleFunction(description = "Shows a popup menu with copy options for a specific message.")
+    public void ShowCopyMenuForMessage(String messageId, int x, int y) {
+        MessageData messageData = messagesMap.get(messageId);
+        if (messageData != null) {
+            final PopupMenu popupMenu = new PopupMenu(context, chatLayout);
+            popupMenu.getMenu().add("Copiar texto");
+            popupMenu.getMenu().add("Copiar com formatação");
+            popupMenu.getMenu().add("Copiar ID da mensagem");
+            
+            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(android.view.MenuItem menuItem) {
+                    String title = menuItem.getTitle().toString();
+                    if (title.equals("Copiar texto")) {
+                        copyMessageTextToClipboard(messageId, messageData.message);
+                    } else if (title.equals("Copiar com formatação")) {
+                        // Copia com alguma formatação básica
+                        String formattedText = "Mensagem: " + messageData.message + "\nID: " + messageId;
+                        copyToClipboardInternal(formattedText);
+                    } else if (title.equals("Copiar ID da mensagem")) {
+                        copyToClipboardInternal(messageId);
+                    }
+                    return true;
+                }
+            });
+            
+            // Posiciona o menu
+            popupMenu.show();
+            // Nota: Para posicionar em coordenadas específicas, precisaria usar uma versão diferente do PopupMenu
+        } else {
+            logError("Message ID not found: " + messageId);
+        }
+    }
+
+    // Método interno para copiar texto para clipboard
+    private void copyMessageTextToClipboard(String messageId, String text) {
+        lastCopiedMessageId = messageId;
+        copyToClipboardInternal(text);
+        
+        // Mostra um toast de confirmação
+        Toast.makeText(context, "Texto copiado para área de transferência", Toast.LENGTH_SHORT).show();
+        
+        // Dispara evento
+        if (container.$form() != null) {
+            container.$form().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    TextCopiedToClipboard(messageId, text);
+                }
+            });
+        }
+    }
+    
+    // Método interno para copiar qualquer texto
+    private void copyToClipboardInternal(String text) {
+        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("Copied Text", text);
+        clipboard.setPrimaryClip(clip);
+        logMessage("Text copied to clipboard: " + (text.length() > 50 ? text.substring(0, 50) + "..." : text));
+    }
+
+    @SimpleEvent(description = "Triggered when text is copied to clipboard from a message.")
+    public void TextCopiedToClipboard(String messageId, String text) {
+        EventDispatcher.dispatchEvent(this, "TextCopiedToClipboard", messageId, text);
     }
 
     @SimpleFunction(description = "Enables or disables Markdown support for all messages. When enabled, text will be parsed as Markdown.")
@@ -340,9 +530,6 @@ public class ChatFlow extends AndroidNonvisibleComponent {
     @SimpleFunction(description = "Converts Markdown text to HTML. Useful for preview or other purposes.")
     public String MarkdownToHtml(String markdownText) {
         try {
-            // O Markwon renderiza para Spannable, não para HTML.
-            // Esta é uma implementação simples que retorna o texto original.
-            // Para uma conversão real, você precisaria de uma biblioteca adicional.
             logMessage("Note: Markwon renders to native Android Spannables, not HTML.");
             return markdownText;
         } catch (Exception e) {
@@ -360,16 +547,14 @@ public class ChatFlow extends AndroidNonvisibleComponent {
                                  final boolean bold, final boolean italic, final float cornerRadius,
                                  final YailList marginsMessageImage, final YailList reactions) {
         
-        // Usa a função principal com Markdown ativado temporariamente
         boolean originalState = markdownEnabled;
         markdownEnabled = true;
         
         AddMessageWithId(messageId, markdownText, isUser, imageProfile, messageImage, timestamp,
                         timestampFontColor, timestampFontSize, fontColor, backgroundColor,
                         fontSize, bold, italic, cornerRadius, marginsMessageImage,
-                        reactions, false, false); // isHtml = false
+                        reactions, false, false);
         
-        // Restaura o estado original se necessário
         if (!originalState) {
             markdownEnabled = false;
         }
@@ -565,10 +750,7 @@ public class ChatFlow extends AndroidNonvisibleComponent {
 
     @SimpleFunction(description = "Copies text to the clipboard.")
     public void CopyToClipboard(String text) {
-        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText("Copied Text", text);
-        clipboard.setPrimaryClip(clip);
-        logMessage("Text copied to clipboard.");
+        copyToClipboardInternal(text);
     }
 
     @SimpleFunction(description = "Converts a hexadecimal color string with alpha value to an int color for App Inventor.")
@@ -859,6 +1041,11 @@ public class ChatFlow extends AndroidNonvisibleComponent {
         EventDispatcher.dispatchEvent(this, "MessageClicked", id, message, timestamp, attachedImagePath, x, y);
     }
 
+    @SimpleEvent(description = "Triggered when a message is long-clicked (pressed and held).")
+    public void MessageLongClicked(String id, String message, String timestamp, String attachedImagePath, int x, int y) {
+        EventDispatcher.dispatchEvent(this, "MessageLongClicked", id, message, timestamp, attachedImagePath, x, y);
+    }
+
     @SimpleEvent(description = "Triggered when a message is added.")
     public void MessageAdded(String id, String message, String timestamp, String attachedImagePath) {
         EventDispatcher.dispatchEvent(this, "MessageAdded", id, message, timestamp, attachedImagePath);
@@ -872,10 +1059,8 @@ public class ChatFlow extends AndroidNonvisibleComponent {
             
             if (messageData.isHtml || markdownEnabled) {
                 if (markdownEnabled) {
-                    // Atualiza usando o Markwon
                     markwon.setMarkdown(messageView, newMessage);
                 } else {
-                    // Atualiza usando HTML (modo antigo)
                     String processedText = newMessage;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                         messageView.setText(android.text.Html.fromHtml(processedText, 
